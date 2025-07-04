@@ -5,7 +5,7 @@ Welcome, weary LoRA trainers and configuration wranglers! Tired of diving into m
 
 Taming Dragons is here to be your trusty sidekick in the eternal quest of cranking out LoRA training configurations without losing your sanity. This delightful little Gradio app focuses on the stuff you *actually* change every day, whilst keeping all the exotic technical wizardry safely tucked away where it belongs.
 
-✨ **Perfect companion to [How to Train Your Dragon](https://github.com/DragonDiffusionbyBoyo/HowToTrainYourDragon) and standard Kohya setups!**
+✨ **Perfect companion to [How to Train Your Dragon](https://github.com/DragonDiffusionbyBoyo/HowToTrainYourDragon WIP not released yet) and standard Kohya setups!**
 
 ## 🎯 What Does This Dragon Do?
 
