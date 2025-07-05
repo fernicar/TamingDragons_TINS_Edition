@@ -66,6 +66,77 @@ The original tool uses Gradio for its user interface. This TINS README describes
 
 The application will be built using PySide6, structured within a `QMainWindow`. A `QTabWidget` will organize the main functional areas.
 
+```mermaid
+graph TD
+    A["QMainWindow (Taming Dragons)"] --> B{QMenuBar};
+    B --> B1["&File Menu"];
+    B1 --> B1a["Load &Base Config..."];
+    B1 --> B1b["&Save Config As..."];
+    B1 --> B1c["E&xit"];
+    B --> B2["&View Menu"];
+    B2 --> B2a["&Style Submenu"];
+    B2 --> B2b["&Color Scheme Submenu"];
+    A --> C{QStatusBar};
+    A --> D[QTabWidget];
+
+    D --> E["Tab: Quick Tweaks"];
+    E --> E1["QSplitter (Horizontal)"];
+    E1 --> E1L["Left Panel (Inputs)"];
+    E1L --> E1L1["Load Group (Button + Status Label)"];
+    E1L --> E1L2["Daily Tweaks Group (Form Layout with QLineEdits/QTextEdit)"];
+    E1L --> E1L3["Update Config Button"];
+    E1 --> E1R["Right Panel (Summary)"];
+    E1R --> E1R1["Summary Group (QTextEdit)"];
+
+    D --> F["Tab: Compare Configs"];
+    F --> F1["File Selection Group (Base + Comparison Buttons/Labels)"];
+    F --> F2["Compare Button"];
+    F --> F3["Results Display (QTextEdit)"];
+
+    D --> G["Tab: Save Configuration"];
+    G --> G1["Filename Group (Suggested + Save As QLineEdits)"];
+    G --> G2["Save Button"];
+    G --> G3["Save Status Label"];
+
+    %% Interactions
+    B1a --> I1{Model: set_base_config};
+    E1L1 --> I1;
+    I1 --> E1L2; %% Populate Tweaks
+    I1 --> E1R1; %% Update Summary
+    I1 --> G1; %% Update Suggested Filename
+
+    E1L3 --> I2{Model: update_daily_tweaks};
+    I2 --> E1R1; %% Update Summary
+    I2 --> G1; %% Update Suggested Filename
+
+    F2 --> I3{Model: compare_loaded_configs};
+    I3 --> F3; %% Display Comparison
+
+    G2 --> I4{Model: save_working_config};
+    I4 --> G3; %% Display Save Status
+
+    B1b --> I4;
+
+    subgraph Model [TamingDragonsModel]
+        direction LR
+        M1[base_config]
+        M2[working_config]
+        M3[daily_tweaks_map]
+        M4[important_params_map]
+        I1
+        I2
+        I3
+        I4
+        M5[suggest_filename()]
+        M6[get_working_config_summary_markdown()]
+    end
+
+    E1L2 -- textChanged --> M5;
+    G1 -- Uses --> M5;
+
+end
+```
+
 **Main Window (`QMainWindow`)**
 - Title: "Taming Dragons - Kohya Config Tool"
 - Menu Bar (`QMenuBar`):
