@@ -99,21 +99,21 @@ graph TD
     G --> G3["Save Status Label"];
 
     %% Interactions
-    B1a --> I1{Model: set_base_config};
+    B1a --> I1{"Model: set_base_config"};
     E1L1 --> I1;
-    I1 --> E1L2; %% Populate Tweaks
-    I1 --> E1R1; %% Update Summary
-    I1 --> G1; %% Update Suggested Filename
+    I1 --> E1L2;
+    I1 --> E1R1;
+    I1 --> G1;
 
-    E1L3 --> I2{Model: update_daily_tweaks};
-    I2 --> E1R1; %% Update Summary
-    I2 --> G1; %% Update Suggested Filename
+    E1L3 --> I2{"Model: update_daily_tweaks"};
+    I2 --> E1R1;
+    I2 --> G1;
 
-    F2 --> I3{Model: compare_loaded_configs};
-    I3 --> F3; %% Display Comparison
+    F2 --> I3{"Model: compare_loaded_configs"};
+    I3 --> F3;
 
-    G2 --> I4{Model: save_working_config};
-    I4 --> G3; %% Display Save Status
+    G2 --> I4{"Model: save_working_config"};
+    I4 --> G3;
 
     B1b --> I4;
 
@@ -127,14 +127,12 @@ graph TD
         I2
         I3
         I4
-        M5[suggest_filename()]
-        M6[get_working_config_summary_markdown()]
+        M5["suggest_filename()"]
+        M6["get_working_config_summary_markdown()"]
     end
 
     E1L2 -- textChanged --> M5;
     G1 -- Uses --> M5;
-
-end
 ```
 
 **Main Window (`QMainWindow`)**
