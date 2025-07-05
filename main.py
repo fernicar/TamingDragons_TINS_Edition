@@ -240,39 +240,44 @@ class MainWindow(QMainWindow):
 
     def _load_app_settings(self):
         """Loads and applies stored application settings like style and color scheme."""
+        app = QApplication.instance()
+        if not app: # Should not happen in a running app but good for robustness
+            return
+
         # Load and apply style
         saved_style = self.settings.value("style", "Fusion") # Default to Fusion
         if saved_style in QStyleFactory.keys():
-            QApplication.setStyle(QStyleFactory.create(saved_style))
+            # Pass the string name directly to setStyle
+            app.setStyle(saved_style)
         else: # Fallback if saved style is somehow invalid
-            QApplication.setStyle(QStyleFactory.create("Fusion"))
-            saved_style = "Fusion"
+            app.setStyle("Fusion")
+            saved_style = "Fusion" # Ensure settings reflect actual applied style
+            self.settings.setValue("style", saved_style)
 
         for action in self.style_actions:
             action.setChecked(action.data() == saved_style)
 
         # Load and apply color scheme
-        # Qt.ColorScheme enum values: Unknown=0, Light=1, Dark=2
         saved_scheme_val = self.settings.value("colorScheme", Qt.ColorScheme.Unknown.value, type=int)
         try:
             color_scheme_to_apply = Qt.ColorScheme(saved_scheme_val)
         except ValueError:
             color_scheme_to_apply = Qt.ColorScheme.Unknown # Fallback
 
-        QApplication.instance().styleHints().setColorScheme(color_scheme_to_apply)
+        app.styleHints().setColorScheme(color_scheme_to_apply)
         for action in self.color_scheme_actions:
             action.setChecked(action.data() == color_scheme_to_apply)
 
     @Slot(bool)
     def _on_style_selected_menu(self, checked):
         action = self.sender()
-        if not isinstance(action, QAction) or not checked:
-            # If unchecked, it means another was checked, so do nothing here
-            # or ensure at least one is checked (though QActionGroup would be better for exclusive)
+        app = QApplication.instance()
+        if not app or not isinstance(action, QAction) or not checked:
             return
 
         selected_style_name = action.data()
-        QApplication.setStyle(QStyleFactory.create(selected_style_name))
+        # Pass the string name directly
+        app.setStyle(selected_style_name)
         self.settings.setValue("style", selected_style_name)
 
         # Uncheck other style actions
@@ -286,11 +291,12 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def _on_color_scheme_selected_menu(self, checked):
         action = self.sender()
-        if not isinstance(action, QAction) or not checked:
+        app = QApplication.instance()
+        if not app or not isinstance(action, QAction) or not checked:
             return
 
         selected_scheme_val = action.data() # This is Qt.ColorScheme enum member
-        QApplication.instance().styleHints().setColorScheme(selected_scheme_val)
+        app.styleHints().setColorScheme(selected_scheme_val)
         self.settings.setValue("colorScheme", selected_scheme_val.value) # Store the integer value
 
         # Uncheck other color scheme actions
