@@ -311,6 +311,70 @@ The application will be built using PySide6, structured within a `QMainWindow`. 
 
 - As the application primarily deals with local files provided by the user, the main risk would be if the JSON parsing library had a vulnerability exploited by a malicious config file. Using the standard `json` library is generally safe.
 - The application writes files to a subdirectory (`configs/`). Ensure no path traversal vulnerabilities (e.g., if a filename like `../../some_other_dir/evil.json` could be used, though `pathlib` usually handles this well). The current implementation seems to place it directly under `configs/`.
+
+## Prerequisites
+
+- Python 3.8 or higher
+- PySide6 (version 6.7.1 as specified in `requirements.txt`)
+
+## Installation
+
+1.  **Clone the repository (or download the source files):**
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Usage
+
+1.  **Run the application:**
+    ```bash
+    python main.py
+    ```
+2.  **Using the Tool:**
+    *   **Quick Tweaks Tab:**
+        *   Click "Upload Base Config..." to load an existing Kohya SS JSON configuration file. The status will be displayed.
+        *   Modify parameters in the "Daily Tweaks" section.
+        *   Click "Update Configuration" to apply changes to the in-memory configuration. The status of this update will be shown.
+        *   The "Current Configuration Summary" will display the state of your working configuration.
+    *   **Compare Configs Tab:**
+        *   Use the "Select Base Configuration..." and "Select Comparison Configuration..." buttons to choose two files.
+        *   Click "Compare Configurations" to see a report of the differences.
+        *   Note: The "Base Configuration" for comparison is independent of the one loaded in "Quick Tweaks" unless you select the same file. For clarity, it's often best to ensure the primary config you wish to compare against is loaded in the "Quick Tweaks" tab, then select the other file in the "Comparison Configuration" field here. The comparison uses the model's main `base_config` (from Quick Tweaks) if no specific base is selected in the Compare tab.
+    *   **Save Configuration Tab:**
+        *   A "Suggested Filename" will appear based on your `output_name` or `training_comment` from the Quick Tweaks tab.
+        *   You can type a custom name in the "Save As" field or use/modify the suggestion.
+        *   Click "Save Configuration". Files will be saved in a `configs` subdirectory created in the application's root folder.
+    *   **Menu Bar:**
+        *   **File > Load Base Config...:** Same as the button in the "Quick Tweaks" tab.
+        *   **File > Save Config As...:** Same as the button in the "Save Configuration" tab.
+        *   **File > Exit:** Closes the application.
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute, please follow these steps:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature or bug fix: `git checkout -b feature/your-feature-name` or `bugfix/issue-number`.
+3.  Make your changes and commit them with clear, descriptive messages.
+4.  Push your changes to your fork: `git push origin feature/your-feature-name`.
+5.  Open a Pull Request against the main repository's `main` (or `develop`) branch.
+
+Please ensure your code adheres to any existing style guidelines and include tests if applicable.
+
+## License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details (if one is added). (Assuming MIT, common for such tools).
+
 <!-- ZS:PLATFORM:DESKTOP -->
 <!-- ZS:LANGUAGE:PYTHON -->
 <!-- ZS:UI_FRAMEWORK:PYSIDE6 -->

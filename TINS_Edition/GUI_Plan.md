@@ -7,6 +7,6 @@
 - [x] Implement the View/Controller component (`main.py`) using PySide6.
 - [x] Create `requirements.txt` with PySide6 dependency.
 - [x] Add a `__main__` test block to `model.py`.
-- [ ] Update `TINS_Edition\README.md` with installation and usage instructions.
+- [x] Update `TINS_Edition\README.md` with installation and usage instructions.
 - [ ] Test `model.py` and fix any bugs.
 - [ ] Final review of the GUI and functionality.
