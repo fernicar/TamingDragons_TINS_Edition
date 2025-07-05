@@ -1,0 +1,13 @@
+- [x] Understand TINS requirements from `TINS_Edition\scuffedepoch-tins.md`
+- [x] Analyze `kohya_config_tool.py` to understand its functionality and UI elements.
+- [x] Design the PySide6 GUI structure based on TINS principles and `kohya_config_tool.py` features.
+- [x] Create `TINS_Edition\README.md` detailing the TINS-based redesign.
+- [x] Refactor `TINS_Edition\README.md` to incorporate PySide6 GUI specifics after studying `TINS_Edition\PySide6modern.md` and `TINS_Edition\best_gui.py`.
+- [x] Implement the Model component (`model.py`) for data handling and business logic.
+- [x] Implement the View/Controller component (`main.py`) using PySide6.
+- [x] Create `requirements.txt` with PySide6 dependency.
+- [x] Add a `__main__` test block to `model.py`.
+- [x] Update `TINS_Edition\README.md` with installation and usage instructions.
+- [x] Test `model.py` and fix any bugs.
+- [ ] Test `main.py` (GUI interaction) and fix any bugs.
+- [ ] Final review of the GUI and functionality.
