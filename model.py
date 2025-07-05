@@ -404,4 +404,4 @@ if __name__ == "__main__":
         os.remove(comp_config_path)
     print("\n--- Tests Complete ---")
 
-```
+# Removed triple backticks that caused SyntaxError
