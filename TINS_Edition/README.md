@@ -1,3 +1,5 @@
+# Kohya Config Tool - TINS Edition
+![](..\images\screenshot.png)
 <!-- TINS Specification v1.0 -->
 # Kohya Config Tool - TINS Edition
 
@@ -442,4 +444,3 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 <!-- ZS:LANGUAGE:PYTHON -->
 <!-- ZS:UI_FRAMEWORK:PYSIDE6 -->
 <!-- ZS:FILE_FORMAT:JSON -->
-```

@@ -1,1 +1,0 @@
-{"output_name": "dummy", "learning_rate": 0.0001, "sdxl": true, "training_comment": "dummy comment", "sample_prompts": "dummy prompt", "unet_lr": 0.0001, "text_encoder_lr": 5e-05, "epoch": 10, "max_train_steps": 100, "seed": 1234, "train_batch_size": 1}
