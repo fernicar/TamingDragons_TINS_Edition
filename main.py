@@ -22,6 +22,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("TamingDragonsOrg", "KohyaConfigTool")
         self._init_ui()
         self._load_app_settings()
+        self.app = QApplication.instance()
 
 
     def _init_ui(self):
@@ -240,13 +241,12 @@ class MainWindow(QMainWindow):
 
     def _load_app_settings(self):
         """Loads and applies stored application settings like style and color scheme."""
-        app = QApplication.instance()
         if not app: # Should not happen in a running app but good for robustness
             return
 
         # Load and apply style
         saved_style = self.settings.value("style", "Fusion") # Default to Fusion
-        if saved_style in QStyleFactory.keys():
+        if isinstance(saved_style, str) and saved_style in QStyleFactory.keys():
             # Pass the string name directly to setStyle
             app.setStyle(saved_style)
         else: # Fallback if saved style is somehow invalid
@@ -271,7 +271,6 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def _on_style_selected_menu(self, checked):
         action = self.sender()
-        app = QApplication.instance()
         if not app or not isinstance(action, QAction) or not checked:
             return
 
@@ -291,7 +290,6 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def _on_color_scheme_selected_menu(self, checked):
         action = self.sender()
-        app = QApplication.instance()
         if not app or not isinstance(action, QAction) or not checked:
             return
 
