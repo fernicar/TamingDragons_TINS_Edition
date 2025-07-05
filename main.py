@@ -21,6 +21,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("TamingDragonsOrg", "KohyaConfigTool")
         self._init_ui()
         self._load_app_settings()
+        self.app = QApplication.instance()
 
     def _init_ui(self):
         self.setWindowTitle("Taming Dragons - Kohya Config Tool")
@@ -102,6 +103,7 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(left_panel_widget)
         splitter.addWidget(summary_group)
+        # Initial sizing: give 60% to left, 40% to right, but they are resizable
         splitter.setSizes([int(self.width() * 0.6), int(self.width() * 0.4)])
 
         tab_main_layout.addWidget(splitter)
@@ -201,7 +203,6 @@ class MainWindow(QMainWindow):
             self.color_scheme_actions.append(action)
 
     def _load_app_settings(self):
-        app = QApplication.instance()
         if not app: return
 
         saved_style = self.settings.value("style", "Fusion")
@@ -230,7 +231,6 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def _on_style_selected_menu(self, checked):
         action = self.sender()
-        app = QApplication.instance()
         if not app or not isinstance(action, QAction) or not checked: return
 
         selected_style_name = action.data()
@@ -245,7 +245,6 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def _on_color_scheme_selected_menu(self, checked):
         action = self.sender()
-        app = QApplication.instance()
         if not app or not isinstance(action, QAction) or not checked: return
 
         selected_scheme_val = action.data()
