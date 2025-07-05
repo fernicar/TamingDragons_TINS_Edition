@@ -1,135 +1,446 @@
-# 🐉 Taming Dragons
-### Kohya Configuration Management Tool
+# Kohya Config Tool - TINS Edition
+![](..\images\screenshot.png)
+<!-- TINS Specification v1.0 -->
+# Kohya Config Tool - TINS Edition
 
-Welcome, weary LoRA trainers and configuration wranglers! Tired of diving into massive JSON files just to change "KezzieNv2" to "NewPersonV1" for the hundredth time? Fed up with hunting through endless parameters to tweak a learning rate or update sample prompts? **Frustrate no more!** 
+## Description
 
-Taming Dragons is here to be your trusty sidekick in the eternal quest of cranking out LoRA training configurations without losing your sanity. This delightful little Gradio app focuses on the stuff you *actually* change every day, whilst keeping all the exotic technical wizardry safely tucked away where it belongs.
+This application, "Taming Dragons - Kohya Config Tool," is designed to simplify the management and modification of Kohya SS training configurations for Stable Diffusion LoRA models. It allows users to load existing JSON configuration files, make common "daily tweaks" (like output name, learning rates, epochs), compare different configurations, and save new configurations. The primary goal is to streamline the process of iterating on training setups without manually editing JSON files, reducing errors and saving time. This tool is particularly useful for users who frequently run multiple LoRA training experiments with minor adjustments to parameters.
 
-✨ **Perfect companion to [How to Train Your Dragon](https://github.com/DragonDiffusionbyBoyo/HowToTrainYourDragon WIP not released yet) and standard Kohya setups!**
+The original tool uses Gradio for its user interface. This TINS README describes the application's functionality for regeneration using a different GUI framework as per the overarching project goals.
 
-## 🎯 What Does This Dragon Do?
+## Functionality
 
-Ever noticed how 90% of your config changes are the same few things?
-- **Output name** (because "MyLoRA_v47_final_FINAL_actually_final" gets old)
-- **Training comment** (trigger words that actually work)
-- **Sample prompts** (testing your new subject without diving into JSON hell)
-- **Learning rates** (the eternal tweaking dance)
-- **Steps and epochs** (quick test vs. full training runs)
+### Core Features
 
-Meanwhile, all the exotic optimizer arguments, memory settings, and technical parameters stay exactly the same between training runs. **So why are we editing them every bloody time?**
+- **Load Base Configuration:**
+    - Users can upload a `.json` file representing a Kohya SS training configuration.
+    - The tool attempts to detect the type of configuration (e.g., Flux1 LoRA, SDXL LoRA, Standard LoRA) and the optimizer used.
+    - Upon successful loading, a status message is displayed (e.g., "✅ Loaded SDXL LoRA config using AdamW optimizer").
+    - If loading fails, an error message is shown (e.g., "❌ Error loading file: ...").
+    - The loaded configuration becomes the "working configuration."
+- **Display and Update Daily Tweaks:**
+    - A predefined set of parameters, termed "Daily Tweaks," are displayed in input fields for easy modification. These include:
+        - `output_name` (string)
+        - `training_comment` (string, often used for trigger words)
+        - `sample_prompts` (multiline string)
+        - `learning_rate` (string, convertible to float)
+        - `unet_lr` (string, convertible to float)
+        - `text_encoder_lr` (string, convertible to float)
+        - `epoch` (string, convertible to int)
+        - `max_train_steps` (string, convertible to int)
+        - `seed` (string, convertible to int)
+        - `train_batch_size` (string, convertible to int)
+    - Values from the loaded base configuration populate these fields.
+    - Users can modify these values.
+    - An "Update Configuration" button applies these changes to the working configuration.
+    - A status message confirms the update (e.g., "✅ Daily tweaks updated successfully!").
+    - If no base configuration is loaded, an error message is shown ("❌ Please load a base configuration first").
+    - Type conversion is attempted for numeric fields (int, float) and booleans based on the original value's type in the loaded config. If conversion fails, the value is stored as a string. Empty fields are not updated.
+- **Compare Configurations:**
+    - Users can upload two `.json` configuration files: a "Base Configuration" and a "Comparison Configuration."
+    - The tool loads both files.
+    - A "Compare Configurations" button triggers the comparison.
+    - The comparison result is displayed, highlighting differences in:
+        - Daily Tweaks parameters.
+        - "Important Parameters" (a predefined list: `optimizer`, `lr_scheduler`, `network_dim`, `network_alpha`, `noise_offset`, `min_snr_gamma`, `save_every_n_epochs`, `save_every_n_steps`).
+        - Optimizer type and optimizer arguments (`optimizer_args`).
+    - If configurations are very similar (no differences in these key areas), a message like "✅ **Configurations are very similar!**" is shown.
+    - Status messages from loading each file are also displayed.
+- **View Configuration Summary:**
+    - An expandable section or area displays a summary of the current working configuration.
+    - This summary includes current values for all "Daily Tweaks" and "Important Parameters."
+    - It updates when a base configuration is loaded or when daily tweaks are applied.
+    - If no configuration is loaded, it shows "No configuration loaded."
+- **Save Configuration:**
+    - Users can save the current working configuration to a new `.json` file.
+    - A suggested filename is automatically generated based on the `output_name` and `training_comment` fields.
+        - If `output_name` is present, it's used (e.g., `MyNewLoRA_v1` -> `MyNewLoRA_v1_config.json`).
+        - Otherwise, the first two words of `training_comment` are used (e.g., `mynewlora woman` -> `mynewlora_woman_config.json`).
+        - If both are empty, `modified_config.json` is suggested.
+        - Non-alphanumeric characters (except `_` and `-`) are replaced with `_`.
+    - Users can specify a custom filename. If it doesn't end with `.json`, the extension is appended.
+    - Files are saved into a `configs` subdirectory (created if it doesn't exist).
+    - A status message confirms successful save (e.g., "✅ Configuration saved as: configs/my_new_config.json") or shows an error (e.g., "❌ Error saving: ...").
+    - If no configuration is loaded, an error message is shown ("❌ No configuration to save").
 
-Taming Dragons solves this by giving you a clean, focused interface for the daily grind parameters, whilst keeping the technical wizardry intact but out of your way.
+### User Interface (PySide6 Implementation)
 
-## 🚀 Quick Start Spell-Casting
+The application will be built using PySide6, structured within a `QMainWindow`. A `QTabWidget` will organize the main functional areas.
 
-### 1. Conjure Your Virtual Environment 🧪
-```bash
-python -m venv venv
+```mermaid
+graph TD
+    A["QMainWindow (Taming Dragons)"] --> B{QMenuBar};
+    B --> B1["&File Menu"];
+    B1 --> B1a["Load &Base Config..."];
+    B1 --> B1b["&Save Config As..."];
+    B1 --> B1c["E&xit"];
+    B --> B2["&View Menu"];
+    B2 --> B2a["&Style Submenu"];
+    B2 --> B2b["&Color Scheme Submenu"];
+    A --> C{QStatusBar};
+    A --> D[QTabWidget];
 
-# On Windows:
-.\venv\Scripts\activate
+    D --> E["Tab: Quick Tweaks"];
+    E --> E1["QSplitter (Horizontal)"];
+    E1 --> E1L["Left Panel (Inputs)"];
+    E1L --> E1L1["Load Group (Button + Status Label)"];
+    E1L --> E1L2["Daily Tweaks Group (Form Layout with QLineEdits/QTextEdit)"];
+    E1L --> E1L3["Update Config Button"];
+    E1 --> E1R["Right Panel (Summary)"];
+    E1R --> E1R1["Summary Group (QTextEdit)"];
 
-# On macOS/Linux:
-source venv/bin/activate
+    D --> F["Tab: Compare Configs"];
+    F --> F1["File Selection Group (Base + Comparison Buttons/Labels)"];
+    F --> F2["Compare Button"];
+    F --> F3["Results Display (QTextEdit)"];
+
+    D --> G["Tab: Save Configuration"];
+    G --> G1["Filename Group (Suggested + Save As QLineEdits)"];
+    G --> G2["Save Button"];
+    G --> G3["Save Status Label"];
+
+    %% Interactions
+    B1a --> I1{"Model: set_base_config"};
+    E1L1 --> I1;
+    I1 --> E1L2;
+    I1 --> E1R1;
+    I1 --> G1;
+
+    E1L3 --> I2{"Model: update_daily_tweaks"};
+    I2 --> E1R1;
+    I2 --> G1;
+
+    F2 --> I3{"Model: compare_loaded_configs"};
+    I3 --> F3;
+
+    G2 --> I4{"Model: save_working_config"};
+    I4 --> G3;
+
+    B1b --> I4;
+
+    subgraph Model [TamingDragonsModel]
+        direction LR
+        M1[base_config]
+        M2[working_config]
+        M3[daily_tweaks_map]
+        M4[important_params_map]
+        I1
+        I2
+        I3
+        I4
+        M5["suggest_filename()"]
+        M6["get_working_config_summary_markdown()"]
+    end
+
+    E1L2 -- textChanged --> M5;
+    G1 -- Uses --> M5;
 ```
 
-### 2. Summon the Dependencies 📜
-```bash
-pip install gradio
-```
+**Main Window (`QMainWindow`)**
+- Title: "Taming Dragons - Kohya Config Tool"
+- Menu Bar (`QMenuBar`):
+    - File Menu (`QMenu` "&File"):
+        - Load Base Config (`QAction` "Load &Base Config...", connects to file dialog, triggers `load_base_config`)
+        - Save Config (`QAction` "&Save Config As...", connects to file dialog, triggers `save_config`)
+        - Exit (`QAction` "E&xit", `QKeySequence.StandardKey.Quit`, connects to `QMainWindow.close`)
+    - View Menu (`QMenu` "&View"):
+        - Style Submenu (`QMenu` "&Style"): Contains checkable `QAction` items for each available system style (e.g., "Fusion", "Windows"). Selected style is saved and restored.
+        - Color Scheme Submenu (`QMenu` "&Color Scheme"): Contains checkable `QAction` items for "Auto", "Light", and "Dark" color schemes. Selected scheme is saved and restored.
+- Status Bar (`QStatusBar`): Displays operation status and messages.
 
-That's it! No PyTorch shenanigans, no CUDA wrestling, just simple Python magic.
+**Main Tabs (`QTabWidget`)**
 
-### 3. Unleash the Dragon! 🔥
-```bash
-python taming_dragons.py
-```
+**Tab 1: Quick Tweaks (`QWidget` container)**
+    - Main Layout: `QHBoxLayout` containing a `QSplitter`.
+    - **Left Panel of Splitter:** `QWidget` with `QVBoxLayout`.
+        - **Group: Load Base Configuration (`QGroupBox`)**
+            - Layout: `QHBoxLayout`
+            - Button: `QPushButton` "Upload Base Config..."
+                - On click: Opens `QFileDialog.getOpenFileName` (filter: "*.json"). Selected file path passed to `model.load_base_config`.
+            - Label: `QLabel` "Status:" (read-only, updated by `model.load_base_config` result).
+        - **Group: Daily Tweaks (`QGroupBox` "⚡ Daily Tweaks - The Stuff You Change Every Time")**
+            - Layout: `QFormLayout`.
+            - Input fields for each daily tweak parameter (e.g., `output_name` as `QLineEdit`, `sample_prompts` as `QTextEdit`).
+            - Button: `QPushButton` "🔄 Update Configuration".
+            - Label: `QLabel` "Update Status:" (read-only).
+    - **Right Panel of Splitter:** `QWidget` containing the "Current Configuration Summary".
+        - **Group: Current Configuration Summary (`QGroupBox`)**
+            - Layout: `QVBoxLayout`.
+            - Display Area: `QTextEdit` (read-only, `setMarkdown` for formatted text).
+                - Initial text: "Load a configuration to see summary."
+                - Updated by `model.get_working_config_summary` after loading or updating.
 
-The Gradio interface will launch in your browser at `http://127.0.0.1:7860`
+**Tab 2: Compare Configs (`QWidget` container)**
+    - Layout: `QVBoxLayout`
+    - Heading: `QLabel` "Compare Two Configurations"
+    - Informational text: `QLabel` "Compare your base config with another to see what's different before tweaking."
+    - **Group: File Selection (`QGroupBox`)**
+        - Layout: `QGridLayout` or `QHBoxLayout`
+        - Button: `QPushButton` "Select Base Configuration..."
+            - On click: `QFileDialog.getOpenFileName` for base file. Store path.
+        - Label: `QLabel` for base file path (read-only).
+        - Button: `QPushButton` "Select Comparison Configuration..."
+            - On click: `QFileDialog.getOpenFileName` for comparison file. Store path.
+        - Label: `QLabel` for comparison file path (read-only).
+    - Button: `QPushButton` "🔍 Compare Configurations"
+        - On click: Passes stored base and comparison file paths to `model.compare_configs`.
+    - Display Area: `QTextEdit` "Comparison Result" (read-only, `setMarkdown` for formatted differences from `model.compare_configs`).
 
-## 🎮 How to Tame Your Dragon
+**Tab 3: Save Configuration (`QWidget` container)**
+    - Layout: `QVBoxLayout`
+    - Heading: `QLabel` "Save Your Modified Configuration"
+    - **Group: Filename (`QGroupBox`)**
+        - Layout: `QFormLayout`
+        - Label: `QLabel` "Suggested Filename:"
+        - Display Field: `QLineEdit` (read-only, updated by `model.generate_filename_suggestion` when `output_name` or `training_comment` change in Quick Tweaks tab).
+            - Example: `self.suggested_filename_label = QLineEdit()`
+            - `self.suggested_filename_label.setReadOnly(True)`
+        - Label: `QLabel` "Save As:"
+        - Input Field: `QLineEdit` (Placeholder: "my_new_config.json"). User can type or modify suggestion.
+            - Example: `self.save_as_edit = QLineEdit()`
+    - Button: `QPushButton` "💾 Save Configuration"
+        - On click: Gets filename from the "Save As" `QLineEdit`, passes to `model.save_config`.
+    - Label: `QLabel` "Save Status:" (read-only, updated by `model.save_config` result).
 
-### The Quick Tweaks Workflow (The Main Event)
+**General UI Notes (PySide6 Specific):**
+- **Feedback:** Status messages will be displayed in dedicated `QLabel` widgets near the action buttons or in the `QStatusBar`. `QMessageBox.information` or `QMessageBox.warning` for important notifications or errors.
+- **File Dialogs:** `QFileDialog` will be used:
+    - `QFileDialog.getOpenFileName(self, "Open Configuration File", "", "JSON files (*.json)")`
+    - `QFileDialog.getSaveFileName(self, "Save Configuration File", "configs/", "JSON files (*.json)")` (Initial directory `configs/`)
+- **Directory Creation:** The `configs` directory creation will be handled by `pathlib.Path.mkdir(exist_ok=True, parents=True)` within the `model.save_config` method before attempting to write the file.
+- **Widget Interaction:**
+    - When a base config is loaded, the daily tweak `QLineEdit` and `QTextEdit` fields will be populated.
+    - `output_name_edit.textChanged.connect(self.update_suggested_filename_slot)`
+    - `training_comment_edit.textChanged.connect(self.update_suggested_filename_slot)`
+    - The `update_suggested_filename_slot` would call `model.generate_filename_suggestion` and update the `suggested_filename_label` in the Save tab.
+- **Layout Management:** `QVBoxLayout`, `QHBoxLayout`, `QGridLayout`, `QFormLayout` will be used for arranging widgets. `QGroupBox` will be used to visually group related elements.
 
-1. **Load Your Base Config**: Upload your proven, working Kohya configuration
-2. **Daily Tweaks Section**: The app automatically extracts and displays the parameters you actually change:
-   - 🎯 Output Name
-   - 🏷️ Training Comment (Trigger Words)  
-   - 🖼️ Sample Prompts
-   - 📈 Learning Rate
-   - 🧠 UNet Learning Rate
-   - 📝 Text Encoder Learning Rate
-   - 🔄 Epochs
-   - 👟 Max Train Steps
-   - 🎲 Seed
-   - 📦 Batch Size
+### Behavior Specifications
 
-3. **Make Your Changes**: Edit the fields that need updating
-4. **Update Configuration**: One click to apply your changes
-5. **Save**: The app suggests intelligent filenames based on your output name and trigger words
+- **File Handling:**
+    - All configuration files are expected to be UTF-8 encoded JSON.
+    - Paths are relative to the application's execution directory, especially for saving into the `configs` subfolder.
+- **Data Integrity:**
+    - The "working configuration" is the primary data structure in memory. It's initialized from the base config and modified by daily tweaks.
+    - When updating daily tweaks, if a field is left empty by the user, the corresponding value in the working configuration should *not* be changed (i.e., retain the value from the base config or previous update).
+    - Type conversion for daily tweaks should be robust: attempt to convert to the original type (e.g., int, float from the loaded config); if it fails, store as string. Boolean conversion should handle 'true', '1', 'yes', 'on' (case-insensitive) as True.
+- **Filename Generation:**
+    - `generate_filename_suggestion(output_name, training_comment)`:
+        - If `output_name` is provided, use it. Sanitize by replacing non-alphanumeric characters (excluding `_`, `-`) with `_`. Append `_config.json`.
+        - If `output_name` is empty but `training_comment` is provided, take the first two words. Sanitize each word (remove non-alphanumeric) and join with `_`. Append `_config.json`.
+        - If both are empty, return `modified_config.json`.
+        - If the base (sanitized name part) is empty after processing, default to `modified_config.json`.
+- **Comparison Logic:**
+    - Comparison should clearly list parameters that differ between the two files, showing the value from the base and the comparison file.
+    - Sections for differences: Daily Tweaks, Important Parameters, Optimizer (including `optimizer_args`).
+    - If no differences are found in these specific areas, a positive confirmation message should be displayed.
 
-### Compare Configs (When You Need to See Differences)
+## Technical Implementation
 
-Upload two configurations to see what's different between them. Perfect for:
-- Comparing your base config with someone else's setup
-- Seeing what changed between training runs
-- Spotting exotic optimizer differences before making variants
+### Architecture
 
-### The Magic Behind the Scenes
+- **Model-View-Controller (MVC) or similar pattern is recommended.**
+    - **Model (`TamingDragons` class / `model.py`):**
+        - Holds `base_config`, `comparison_config`, `working_config` (dictionaries).
+        - Contains lists of `daily_tweaks` and `important_params` keys and their display labels.
+        - Implements all business logic:
+            - `load_config(file_path)`: Loads a single JSON, detects type, returns config dict and status string.
+            - `load_base_config(file_path)`: Uses `load_config` to populate `base_config` and `working_config`. Extracts values for daily tweak UI fields. Returns status and daily tweak values.
+            - `compare_configs(base_file_path, comp_file_path)`: Loads both, performs comparison, returns formatted string.
+            - `update_daily_tweaks(*values)`: Updates `working_config` based on input values from UI. Handles type conversion. Returns status string.
+            - `get_working_config_summary()`: Generates formatted string of current `working_config` for display.
+            - `save_config(filename)`: Saves `working_config` to `configs/filename`. Returns status string.
+            - `generate_filename_suggestion(output_name, training_comment)`: Returns suggested filename string.
+    - **View/Controller (`main.py` with PySide6):**
+        - Handles UI creation and event handling.
+        - Calls methods in the Model.
+        - Updates UI elements based on data returned from the Model.
+- **Dependencies:**
+    - `PySide6` for the GUI.
+    - Standard Python libraries: `json`, `os`, `pathlib`, `re`.
 
-**What stays the same**: All your exotic optimizer arguments (`decouple=True weight_decay=0.45 d_coef=2` and friends), model paths, memory settings, and technical parameters remain untouched.
+### Data Structures
 
-**What gets easy**: The stuff you change every day becomes a simple form instead of JSON archaeology.
+- **Configuration files:** JSON format. Loaded into Python dictionaries.
+- **`daily_tweaks`:** Dictionary mapping parameter keys (e.g., `output_name`) to display labels (e.g., `Output Name`).
+  ```python
+  self.daily_tweaks = {
+      'output_name': 'Output Name',
+      'training_comment': 'Training Comment (Trigger Words)',
+      'sample_prompts': 'Sample Prompts',
+      'learning_rate': 'Learning Rate',
+      'unet_lr': 'UNet Learning Rate',
+      'text_encoder_lr': 'Text Encoder Learning Rate',
+      'epoch': 'Epochs',
+      'max_train_steps': 'Max Train Steps',
+      'seed': 'Seed',
+      'train_batch_size': 'Batch Size'
+  }
+  ```
+- **`important_params`:** Dictionary mapping parameter keys to display labels.
+  ```python
+  self.important_params = {
+      'optimizer': 'Optimizer',
+      'lr_scheduler': 'LR Scheduler',
+      'network_dim': 'Network Dimension',
+      'network_alpha': 'Network Alpha',
+      'noise_offset': 'Noise Offset',
+      'min_snr_gamma': 'Min SNR Gamma',
+      'save_every_n_epochs': 'Save Every N Epochs',
+      'save_every_n_steps': 'Save Every N Steps'
+  }
+  ```
+- **`working_config`:** Python dictionary holding the live, modifiable configuration.
 
-**Smart filename suggestions**: Based on your output name and trigger words, because `FluxLoRA_sarah_portrait_v3.json` is more useful than `config_copy_2_final.json`.
+### Algorithms
 
-## 🧙‍♂️ Perfect For
+- **Config Loading:**
+    1. Check file existence.
+    2. Open and `json.load()`.
+    3. Detect config type based on key-value pairs:
+        - `LoRA_type == 'Flux1'` -> "Flux1 LoRA"
+        - `sdxl == True` -> "SDXL LoRA"
+        - `LoRA_type == 'Standard'` -> "Standard LoRA"
+        - Else "Unknown"
+    4. Extract `optimizer` value.
+    5. Construct status message.
+- **Config Comparison:**
+    1. Load both base and comparison configs.
+    2. Iterate through `daily_tweaks` keys:
+        - Get value from base_config (default "Not set").
+        - Get value from comp_config (default "Not set").
+        - If different, record the difference with labels and values.
+    3. Iterate through `important_params` keys:
+        - Get values and record if different.
+    4. Compare `optimizer` values. If different, record.
+    5. If optimizers differ, compare `optimizer_args` (default empty string). If different, record.
+    6. Format all recorded differences into a markdown-like string.
+- **Filename Sanitization (within `generate_filename_suggestion`):**
+    - For `output_name` or words from `training_comment`: `re.sub(r'[^\w\-_]', '_', name_part)`
 
-- **LoRA trainers** who run multiple subjects with the same base setup
-- **Kohya users** tired of JSON editing for simple parameter changes
-- **Batch trainers** who need to quickly generate config variants
-- **Anyone** who's ever spent 10 minutes hunting for the learning rate in a 200-line JSON file
+### External Integrations
+- None beyond reading/writing files from the local filesystem. The application does not interact with Kohya SS directly or any web services.
 
-## 🔧 Technical Sorcery
+## Style Guide (Conceptual for PySide6)
 
-- **Flux1, SDXL, and Standard LoRA** configurations supported
-- **Intelligent type conversion** (keeps your ints as ints, floats as floats)
-- **Exotic optimizer detection** (flags when special Prodigy/AdamW8bit parameters exist)
-- **Non-destructive editing** (your original config structure remains intact)
-- **Auto-backup through versioning** (save variants without overwriting originals)
+- **Layout:** Intuitive and clean. Use tabs to separate major functions. Within tabs, group related controls using group boxes or clear spacing.
+- **Responsiveness:** The window should be resizable to a reasonable extent, with elements adjusting gracefully.
+- **Feedback:** Status messages should be clearly visible and distinct (e.g., using color for success/error, or icons).
+- **Consistency:** Use consistent terminology and widget styles throughout the application.
 
-## 🤝 Dragon Diffusion Ecosystem
+## Performance Requirements
 
-Taming Dragons is part of the Dragon Diffusion toolkit:
-- **[How to Train Your Dragon](https://github.com/DragonDiffusionbyBoyo/HowToTrainYourDragon)**: Full training software based on Kohya
-- **[Dragon Diffusion Dataset Validator](https://github.com/DragonDiffusionbyBoyo/Dragon-Diffusion-Dataset-Validator)**: Dataset analysis and quality checking
-- **Taming Dragons**: Configuration management (you are here!)
+- The application should be responsive, with UI updates occurring quickly after user actions.
+- File loading and saving for typical configuration file sizes (usually small, <1MB) should be near-instantaneous.
+- Comparison of two configs should also be very fast.
 
-## 🐛 When Dragons Misbehave
+## Accessibility Requirements
 
-Found a bug? Configuration not loading properly? The dragon refusing to save your tweaks?
+- Standard keyboard navigation should be supported (Tab, Shift+Tab).
+- Labels for all input fields are necessary.
+- Font sizes should be legible. (Consider respecting system font settings if possible).
 
-**Open an issue** and include:
-- Your Python version
-- The configuration file that's causing trouble (anonymise paths/names if needed)
-- What you were trying to do when it broke
+## Testing Scenarios
 
-## 📜 The Ancient Wisdom (FAQ)
+- **Load:**
+    - Load a valid SDXL LoRA config. Verify status and daily tweak fields populate correctly.
+    - Load a valid Standard LoRA config.
+    - Load a Flux1 config.
+    - Attempt to load a non-JSON file. Verify error message.
+    - Attempt to load a non-existent file. Verify error message.
+    - Attempt to load a JSON file that is not a Kohya config. Verify it loads but may show "Unknown" type.
+- **Update Tweaks:**
+    - Change `output_name` and `learning_rate`. Update. Verify summary shows new values. Save and check JSON.
+    - Clear `epoch` field. Update. Verify original epoch value is retained in summary/saved file.
+    - Enter non-numeric value in `seed`. Update. Verify it's stored as string (or error shown if strict typing is enforced before this stage).
+- **Compare:**
+    - Compare two identical files. Verify "very similar" message.
+    - Compare files with different `learning_rate`. Verify difference is shown.
+    - Compare files with different `optimizer`. Verify difference and `optimizer_args` (if any) are shown.
+    - Compare file with itself. Verify "very similar".
+- **Save:**
+    - Load config, change `output_name` to "TestLoRA". Verify suggested filename is `TestLoRA_config.json`.
+    - Change `training_comment` to "mychar concept". Verify suggested filename (if output_name is cleared) is `mychar_concept_config.json`.
+    - Save with default suggested name. Verify file created in `configs/` dir.
+    - Save with custom name "custom.json". Verify.
+    - Save with custom name "custom_no_ext". Verify "custom_no_ext.json" is created.
+- **Edge Cases:**
+    - Try to update/save without loading a base config. Verify error messages.
+    - Use special characters in `output_name` or `training_comment` and check filename suggestion sanitization.
+    - Load a config, then load another. Verify the UI correctly reflects the newly loaded config.
 
-**Q: Will this work with my exotic Prodigy setup?**  
-A: Absolutely! All the exotic parameters stay intact - we just make the common stuff easier to change.
+## Security Considerations
 
-**Q: Can I use this with non-Kohya configs?**  
-A: It's designed for Kohya configs, but any JSON with similar parameter names should work fine.
+- As the application primarily deals with local files provided by the user, the main risk would be if the JSON parsing library had a vulnerability exploited by a malicious config file. Using the standard `json` library is generally safe.
+- The application writes files to a subdirectory (`configs/`). Ensure no path traversal vulnerabilities (e.g., if a filename like `../../some_other_dir/evil.json` could be used, though `pathlib` usually handles this well). The current implementation seems to place it directly under `configs/`.
 
-**Q: What if I need to change something not in the daily tweaks?**  
-A: The comparison tool shows all differences, and your saved config includes everything. You can always edit the saved JSON manually for the truly exotic stuff.
+## Prerequisites
 
-**Q: Does this replace Kohya GUI?**  
-A: Not at all! This is for config management and quick tweaks. You still need Kohya or How to Train Your Dragon for the actual training.
+- Python 3.8 or higher
+- PySide6 (version 6.9.1 as specified in `requirements.txt`)
 
----
+## Installation
 
-*Built with ❤️ (and mild frustration at JSON editing) by Dragon Diffusion*
+1.  **Clone the repository (or download the source files):**
+    ```bash
+    git clone https://github.com/fernicar/TamingDragons_TINS_Edition
+    cd https://github.com/fernicar/TamingDragons_TINS_Edition
+    ```
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-**May your training runs be swift and your configs ever-tidy!** 🐉✨
+## Usage
+
+1.  **Run the application:**
+    ```bash
+    python main.py
+    ```
+2.  **Using the Tool:**
+    *   **Quick Tweaks Tab:**
+        *   Click "Upload Base Config..." to load an existing Kohya SS JSON configuration file. The status will be displayed.
+        *   Modify parameters in the "Daily Tweaks" section.
+        *   Click "Update Configuration" to apply changes to the in-memory configuration. The status of this update will be shown.
+        *   The "Current Configuration Summary" (now on the right side of a splitter) will display the state of your working configuration.
+    *   **Compare Configs Tab:**
+        *   Use the "Select Base Configuration..." and "Select Comparison Configuration..." buttons to choose two files.
+        *   Click "Compare Configurations" to see a report of the differences.
+        *   Note: The "Base Configuration" for comparison is independent of the one loaded in "Quick Tweaks" unless you select the same file. For clarity, it's often best to ensure the primary config you wish to compare against is loaded in the "Quick Tweaks" tab, then select the other file in the "Comparison Configuration" field here. The comparison uses the model's main `base_config` (from Quick Tweaks) if no specific base is selected in the Compare tab.
+    *   **Save Configuration Tab:**
+        *   A "Suggested Filename" will appear based on your `output_name` or `training_comment` from the Quick Tweaks tab.
+        *   You can type a custom name in the "Save As" field or use/modify the suggestion.
+        *   Click "Save Configuration". Files will be saved in a `configs` subdirectory created in the application's root folder.
+    *   **Menu Bar:**
+        *   **File > Load Base Config...:** Same as the button in the "Quick Tweaks" tab.
+        *   **File > Save Config As...:** Same as the button in the "Save Configuration" tab.
+        *   **File > Exit:** Closes the application.
+        *   **View > Style:** Allows selection from available Qt application styles (e.g., Fusion, Windows). The choice is saved.
+        *   **View > Color Scheme:** Allows selection of "Auto", "Light", or "Dark" color schemes. The choice is saved.
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute, please follow these steps:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature or bug fix: `git checkout -b feature/your-feature-name` or `bugfix/issue-number`.
+3.  Make your changes and commit them with clear, descriptive messages.
+4.  Push your changes to your fork: `git push origin feature/your-feature-name`.
+5.  Open a Pull Request against the main repository's `main` (or `develop`) branch.
+
+Please ensure your code adheres to any existing style guidelines and include tests if applicable.
+
+## License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details (if one is added). (Assuming MIT, common for such tools).
+
+<!-- ZS:PLATFORM:DESKTOP -->
+<!-- ZS:LANGUAGE:PYTHON -->
+<!-- ZS:UI_FRAMEWORK:PYSIDE6 -->
+<!-- ZS:FILE_FORMAT:JSON -->
