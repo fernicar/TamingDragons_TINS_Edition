@@ -73,40 +73,32 @@ The application will be built using PySide6, structured within a `QMainWindow`. 
         - Load Base Config (`QAction` "Load &Base Config...", connects to file dialog, triggers `load_base_config`)
         - Save Config (`QAction` "&Save Config As...", connects to file dialog, triggers `save_config`)
         - Exit (`QAction` "E&xit", `QKeySequence.StandardKey.Quit`, connects to `QMainWindow.close`)
+    - View Menu (`QMenu` "&View"):
+        - Style Submenu (`QMenu` "&Style"): Contains checkable `QAction` items for each available system style (e.g., "Fusion", "Windows"). Selected style is saved and restored.
+        - Color Scheme Submenu (`QMenu` "&Color Scheme"): Contains checkable `QAction` items for "Auto", "Light", and "Dark" color schemes. Selected scheme is saved and restored.
 - Status Bar (`QStatusBar`): Displays operation status and messages.
 
 **Main Tabs (`QTabWidget`)**
 
 **Tab 1: Quick Tweaks (`QWidget` container)**
-    - Layout: `QVBoxLayout`
-    - **Group: Load Base Configuration (`QGroupBox`)**
-        - Layout: `QHBoxLayout`
-        - Button: `QPushButton` "Upload Base Config..."
-            - On click: Opens `QFileDialog.getOpenFileName` (filter: "*.json"). Selected file path passed to `model.load_base_config`.
-        - Label: `QLabel` "Status:" (read-only, updated by `model.load_base_config` result)
-            - Example: `self.load_status_label = QLabel("No config loaded.")`
-    - **Group: Daily Tweaks (`QGroupBox` "⚡ Daily Tweaks - The Stuff You Change Every Time")**
-        - Layout: `QFormLayout` (suitable for label-input pairs) or `QGridLayout`.
-        - Input fields for each daily tweak parameter:
-            - `output_name`: `QLineEdit` (Label: "🎯 Output Name", Placeholder: "MyNewLoRA_v1")
-            - `training_comment`: `QLineEdit` (Label: "🏷️ Training Comment (Trigger Words)", Placeholder: "mynewlora woman, portrait")
-            - `sample_prompts`: `QTextEdit` (Label: "🖼️ Sample Prompts", Placeholder: "mynewlora woman portrait, looking at viewer, detailed...", fixed height or reasonable initial size)
-            - `learning_rate`: `QLineEdit` (Label: "📈 Learning Rate", Placeholder: "0.0001")
-            - `unet_lr`: `QLineEdit` (Label: "🧠 UNet Learning Rate", Placeholder: "0.0001")
-            - `text_encoder_lr`: `QLineEdit` (Label: "📝 Text Encoder LR", Placeholder: "0.0001")
-            - `epoch`: `QLineEdit` (Label: "🔄 Epochs", Placeholder: "30")
-            - `max_train_steps`: `QLineEdit` (Label: "👟 Max Train Steps", Placeholder: "3000")
-            - `seed`: `QLineEdit` (Label: "🎲 Seed", Placeholder: "42")
-            - `train_batch_size`: `QLineEdit` (Label: "📦 Batch Size", Placeholder: "1")
-        - Button: `QPushButton` "🔄 Update Configuration"
-            - On click: Gathers values from all tweak QLineEdits/QTextEdit, passes them to `model.update_daily_tweaks`.
-        - Label: `QLabel` "Update Status:" (read-only, updated by `model.update_daily_tweaks` result)
-            - Example: `self.update_status_label = QLabel("")`
-    - **Group: Current Configuration Summary (`QGroupBox`, checkable or with a separate show/hide button)**
-        - Layout: `QVBoxLayout`
-        - Display Area: `QTextEdit` (read-only, `setMarkdown` for formatted text).
-            - Initial text: "Load a configuration to see summary."
-            - Updated by `model.get_working_config_summary` after loading or updating.
+    - Main Layout: `QHBoxLayout` containing a `QSplitter`.
+    - **Left Panel of Splitter:** `QWidget` with `QVBoxLayout`.
+        - **Group: Load Base Configuration (`QGroupBox`)**
+            - Layout: `QHBoxLayout`
+            - Button: `QPushButton` "Upload Base Config..."
+                - On click: Opens `QFileDialog.getOpenFileName` (filter: "*.json"). Selected file path passed to `model.load_base_config`.
+            - Label: `QLabel` "Status:" (read-only, updated by `model.load_base_config` result).
+        - **Group: Daily Tweaks (`QGroupBox` "⚡ Daily Tweaks - The Stuff You Change Every Time")**
+            - Layout: `QFormLayout`.
+            - Input fields for each daily tweak parameter (e.g., `output_name` as `QLineEdit`, `sample_prompts` as `QTextEdit`).
+            - Button: `QPushButton` "🔄 Update Configuration".
+            - Label: `QLabel` "Update Status:" (read-only).
+    - **Right Panel of Splitter:** `QWidget` containing the "Current Configuration Summary".
+        - **Group: Current Configuration Summary (`QGroupBox`)**
+            - Layout: `QVBoxLayout`.
+            - Display Area: `QTextEdit` (read-only, `setMarkdown` for formatted text).
+                - Initial text: "Load a configuration to see summary."
+                - Updated by `model.get_working_config_summary` after loading or updating.
 
 **Tab 2: Compare Configs (`QWidget` container)**
     - Layout: `QVBoxLayout`
@@ -315,7 +307,7 @@ The application will be built using PySide6, structured within a `QMainWindow`. 
 ## Prerequisites
 
 - Python 3.8 or higher
-- PySide6 (version 6.7.1 as specified in `requirements.txt`)
+- PySide6 (version 6.9.1 as specified in `requirements.txt`)
 
 ## Installation
 
@@ -345,7 +337,7 @@ The application will be built using PySide6, structured within a `QMainWindow`. 
         *   Click "Upload Base Config..." to load an existing Kohya SS JSON configuration file. The status will be displayed.
         *   Modify parameters in the "Daily Tweaks" section.
         *   Click "Update Configuration" to apply changes to the in-memory configuration. The status of this update will be shown.
-        *   The "Current Configuration Summary" will display the state of your working configuration.
+        *   The "Current Configuration Summary" (now on the right side of a splitter) will display the state of your working configuration.
     *   **Compare Configs Tab:**
         *   Use the "Select Base Configuration..." and "Select Comparison Configuration..." buttons to choose two files.
         *   Click "Compare Configurations" to see a report of the differences.
@@ -358,6 +350,8 @@ The application will be built using PySide6, structured within a `QMainWindow`. 
         *   **File > Load Base Config...:** Same as the button in the "Quick Tweaks" tab.
         *   **File > Save Config As...:** Same as the button in the "Save Configuration" tab.
         *   **File > Exit:** Closes the application.
+        *   **View > Style:** Allows selection from available Qt application styles (e.g., Fusion, Windows). The choice is saved.
+        *   **View > Color Scheme:** Allows selection of "Auto", "Light", or "Dark" color schemes. The choice is saved.
 
 ## Contributing
 

@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
 
     def _create_quick_tweaks_tab(self):
         quick_tweaks_tab = QWidget()
-        tab_main_layout = QHBoxLayout(quick_tweaks_tab) # Main layout for this tab
+        tab_main_layout = QHBoxLayout(quick_tweaks_tab)
 
         # --- Left Panel (Inputs) ---
         left_panel_widget = QWidget()
@@ -102,8 +102,7 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(left_panel_widget)
         splitter.addWidget(summary_group)
-        # Initial sizing: give 60% to left, 40% to right, but they are resizable
-        splitter.setSizes([self.width() * 0.6, self.width() * 0.4])
+        splitter.setSizes([int(self.width() * 0.6), int(self.width() * 0.4)])
 
         tab_main_layout.addWidget(splitter)
         self.tabs.addTab(quick_tweaks_tab, "Quick Tweaks")
@@ -213,8 +212,8 @@ class MainWindow(QMainWindow):
             saved_style = "Fusion"
             self.settings.setValue("style", saved_style)
 
-        for action in self.style_actions: # self.style_actions might not be init yet if called too early
-             if hasattr(self, 'style_actions'):
+        if hasattr(self, 'style_actions'): # Ensure style_actions is initialized
+            for action in self.style_actions:
                 action.setChecked(action.data() == saved_style)
 
         saved_scheme_val = self.settings.value("colorScheme", Qt.ColorScheme.Unknown.value, type=int)
@@ -224,7 +223,7 @@ class MainWindow(QMainWindow):
             color_scheme_to_apply = Qt.ColorScheme.Unknown
 
         app.styleHints().setColorScheme(color_scheme_to_apply)
-        if hasattr(self, 'color_scheme_actions'):
+        if hasattr(self, 'color_scheme_actions'): # Ensure color_scheme_actions is initialized
             for action in self.color_scheme_actions:
                 action.setChecked(action.data() == color_scheme_to_apply)
 
@@ -235,7 +234,7 @@ class MainWindow(QMainWindow):
         if not app or not isinstance(action, QAction) or not checked: return
 
         selected_style_name = action.data()
-        if isinstance(selected_style_name, str): # Ensure it's a string
+        if isinstance(selected_style_name, str):
             app.setStyle(selected_style_name)
             self.settings.setValue("style", selected_style_name)
             for style_action in self.style_actions:
@@ -250,7 +249,7 @@ class MainWindow(QMainWindow):
         if not app or not isinstance(action, QAction) or not checked: return
 
         selected_scheme_val = action.data()
-        if isinstance(selected_scheme_val, Qt.ColorScheme): # Ensure it's correct type
+        if isinstance(selected_scheme_val, Qt.ColorScheme):
             app.styleHints().setColorScheme(selected_scheme_val)
             self.settings.setValue("colorScheme", selected_scheme_val.value)
             for scheme_action in self.color_scheme_actions:
