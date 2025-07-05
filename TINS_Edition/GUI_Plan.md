@@ -9,4 +9,5 @@
 - [x] Add a `__main__` test block to `model.py`.
 - [x] Update `TINS_Edition\README.md` with installation and usage instructions.
 - [ ] Test `model.py` and fix any bugs.
+- [ ] Test `main.py` (GUI interaction) and fix any bugs.
 - [ ] Final review of the GUI and functionality.
