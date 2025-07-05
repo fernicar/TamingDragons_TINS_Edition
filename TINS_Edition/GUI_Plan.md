@@ -2,7 +2,7 @@
 - [x] Analyze `kohya_config_tool.py` to understand its functionality and UI elements.
 - [x] Design the PySide6 GUI structure based on TINS principles and `kohya_config_tool.py` features.
 - [x] Create `TINS_Edition\README.md` detailing the TINS-based redesign.
-- [ ] Refactor `TINS_Edition\README.md` to incorporate PySide6 GUI specifics after studying `TINS_Edition\PySide6modern.md` and `TINS_Edition\best_gui.py`.
+- [x] Refactor `TINS_Edition\README.md` to incorporate PySide6 GUI specifics after studying `TINS_Edition\PySide6modern.md` and `TINS_Edition\best_gui.py`.
 - [ ] Implement the Model component (`model.py`) for data handling and business logic.
 - [ ] Implement the View/Controller component (`main.py`) using PySide6.
 - [ ] Create `requirements.txt` with PySide6 dependency.

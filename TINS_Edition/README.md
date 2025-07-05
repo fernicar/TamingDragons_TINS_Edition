@@ -62,54 +62,96 @@ The original tool uses Gradio for its user interface. This TINS README describes
     - A status message confirms successful save (e.g., "✅ Configuration saved as: configs/my_new_config.json") or shows an error (e.g., "❌ Error saving: ...").
     - If no configuration is loaded, an error message is shown ("❌ No configuration to save").
 
-### User Interface (Conceptual for PySide6)
+### User Interface (PySide6 Implementation)
 
-The application will have a main window with tabs or distinct sections for different functionalities.
+The application will be built using PySide6, structured within a `QMainWindow`. A `QTabWidget` will organize the main functional areas.
 
-**Main Window Title:** "Taming Dragons - Kohya Config Tool"
+**Main Window (`QMainWindow`)**
+- Title: "Taming Dragons - Kohya Config Tool"
+- Menu Bar (`QMenuBar`):
+    - File Menu (`QMenu` "&File"):
+        - Load Base Config (`QAction` "Load &Base Config...", connects to file dialog, triggers `load_base_config`)
+        - Save Config (`QAction` "&Save Config As...", connects to file dialog, triggers `save_config`)
+        - Exit (`QAction` "E&xit", `QKeySequence.StandardKey.Quit`, connects to `QMainWindow.close`)
+- Status Bar (`QStatusBar`): Displays operation status and messages.
 
-**Tab 1: Quick Tweaks**
-    - **Section: Load Base Configuration**
-        - File input button/field: "Upload Base Config" (accepts `.json`).
-        - Text display area: "Status" (shows loading status/errors).
-    - **Section: Daily Tweaks**
-        - A clear heading: "⚡ Daily Tweaks - The Stuff You Change Every Time"
+**Main Tabs (`QTabWidget`)**
+
+**Tab 1: Quick Tweaks (`QWidget` container)**
+    - Layout: `QVBoxLayout`
+    - **Group: Load Base Configuration (`QGroupBox`)**
+        - Layout: `QHBoxLayout`
+        - Button: `QPushButton` "Upload Base Config..."
+            - On click: Opens `QFileDialog.getOpenFileName` (filter: "*.json"). Selected file path passed to `model.load_base_config`.
+        - Label: `QLabel` "Status:" (read-only, updated by `model.load_base_config` result)
+            - Example: `self.load_status_label = QLabel("No config loaded.")`
+    - **Group: Daily Tweaks (`QGroupBox` "⚡ Daily Tweaks - The Stuff You Change Every Time")**
+        - Layout: `QFormLayout` (suitable for label-input pairs) or `QGridLayout`.
         - Input fields for each daily tweak parameter:
-            - `output_name`: Text input (Label: "🎯 Output Name", Placeholder: "MyNewLoRA_v1")
-            - `training_comment`: Text input (Label: "🏷️ Training Comment (Trigger Words)", Placeholder: "mynewlora woman, portrait")
-            - `sample_prompts`: Multiline text input (Label: "🖼️ Sample Prompts", Placeholder: "mynewlora woman portrait, looking at viewer, detailed...")
-            - `learning_rate`: Text input (Label: "📈 Learning Rate", Placeholder: "0.0001")
-            - `unet_lr`: Text input (Label: "🧠 UNet Learning Rate", Placeholder: "0.0001")
-            - `text_encoder_lr`: Text input (Label: "📝 Text Encoder LR", Placeholder: "0.0001")
-            - `epoch`: Text input (Label: "🔄 Epochs", Placeholder: "30")
-            - `max_train_steps`: Text input (Label: "👟 Max Train Steps", Placeholder: "3000")
-            - `seed`: Text input (Label: "🎲 Seed", Placeholder: "42")
-            - `train_batch_size`: Text input (Label: "📦 Batch Size", Placeholder: "1")
-        - Button: "🔄 Update Configuration"
-        - Text display area: "Update Status"
-    - **Section: Current Configuration Summary** (Collapsible/Expandable Area)
-        - Initial text: "Load a configuration to see summary"
-        - When loaded, displays formatted key-value pairs for Daily Tweaks and Important Parameters.
+            - `output_name`: `QLineEdit` (Label: "🎯 Output Name", Placeholder: "MyNewLoRA_v1")
+            - `training_comment`: `QLineEdit` (Label: "🏷️ Training Comment (Trigger Words)", Placeholder: "mynewlora woman, portrait")
+            - `sample_prompts`: `QTextEdit` (Label: "🖼️ Sample Prompts", Placeholder: "mynewlora woman portrait, looking at viewer, detailed...", fixed height or reasonable initial size)
+            - `learning_rate`: `QLineEdit` (Label: "📈 Learning Rate", Placeholder: "0.0001")
+            - `unet_lr`: `QLineEdit` (Label: "🧠 UNet Learning Rate", Placeholder: "0.0001")
+            - `text_encoder_lr`: `QLineEdit` (Label: "📝 Text Encoder LR", Placeholder: "0.0001")
+            - `epoch`: `QLineEdit` (Label: "🔄 Epochs", Placeholder: "30")
+            - `max_train_steps`: `QLineEdit` (Label: "👟 Max Train Steps", Placeholder: "3000")
+            - `seed`: `QLineEdit` (Label: "🎲 Seed", Placeholder: "42")
+            - `train_batch_size`: `QLineEdit` (Label: "📦 Batch Size", Placeholder: "1")
+        - Button: `QPushButton` "🔄 Update Configuration"
+            - On click: Gathers values from all tweak QLineEdits/QTextEdit, passes them to `model.update_daily_tweaks`.
+        - Label: `QLabel` "Update Status:" (read-only, updated by `model.update_daily_tweaks` result)
+            - Example: `self.update_status_label = QLabel("")`
+    - **Group: Current Configuration Summary (`QGroupBox`, checkable or with a separate show/hide button)**
+        - Layout: `QVBoxLayout`
+        - Display Area: `QTextEdit` (read-only, `setMarkdown` for formatted text).
+            - Initial text: "Load a configuration to see summary."
+            - Updated by `model.get_working_config_summary` after loading or updating.
 
-**Tab 2: Compare Configs**
-    - Heading: "Compare Two Configurations"
-    - Informational text: "Compare your base config with another to see what's different before tweaking."
-    - File input button/field: "Base Configuration" (accepts `.json`).
-    - File input button/field: "Comparison Configuration" (accepts `.json`).
-    - Button: "🔍 Compare Configurations"
-    - Multiline text display area: "Comparison Result" (shows formatted differences).
+**Tab 2: Compare Configs (`QWidget` container)**
+    - Layout: `QVBoxLayout`
+    - Heading: `QLabel` "Compare Two Configurations"
+    - Informational text: `QLabel` "Compare your base config with another to see what's different before tweaking."
+    - **Group: File Selection (`QGroupBox`)**
+        - Layout: `QGridLayout` or `QHBoxLayout`
+        - Button: `QPushButton` "Select Base Configuration..."
+            - On click: `QFileDialog.getOpenFileName` for base file. Store path.
+        - Label: `QLabel` for base file path (read-only).
+        - Button: `QPushButton` "Select Comparison Configuration..."
+            - On click: `QFileDialog.getOpenFileName` for comparison file. Store path.
+        - Label: `QLabel` for comparison file path (read-only).
+    - Button: `QPushButton` "🔍 Compare Configurations"
+        - On click: Passes stored base and comparison file paths to `model.compare_configs`.
+    - Display Area: `QTextEdit` "Comparison Result" (read-only, `setMarkdown` for formatted differences from `model.compare_configs`).
 
-**Tab 3: Save Configuration**
-    - Heading: "Save Your Modified Configuration"
-    - Text display field (read-only): "Suggested Filename"
-    - Text input field: "Save As" (Placeholder: "my_new_config.json")
-    - Button: "💾 Save Configuration"
-    - Text display area: "Save Status"
+**Tab 3: Save Configuration (`QWidget` container)**
+    - Layout: `QVBoxLayout`
+    - Heading: `QLabel` "Save Your Modified Configuration"
+    - **Group: Filename (`QGroupBox`)**
+        - Layout: `QFormLayout`
+        - Label: `QLabel` "Suggested Filename:"
+        - Display Field: `QLineEdit` (read-only, updated by `model.generate_filename_suggestion` when `output_name` or `training_comment` change in Quick Tweaks tab).
+            - Example: `self.suggested_filename_label = QLineEdit()`
+            - `self.suggested_filename_label.setReadOnly(True)`
+        - Label: `QLabel` "Save As:"
+        - Input Field: `QLineEdit` (Placeholder: "my_new_config.json"). User can type or modify suggestion.
+            - Example: `self.save_as_edit = QLineEdit()`
+    - Button: `QPushButton` "💾 Save Configuration"
+        - On click: Gets filename from the "Save As" `QLineEdit`, passes to `model.save_config`.
+    - Label: `QLabel` "Save Status:" (read-only, updated by `model.save_config` result).
 
-**General UI Notes:**
-- The application should provide clear visual feedback for actions (e.g., loading states, success/error messages).
-- File dialogs should filter for `.json` files.
-- The `configs` directory should be created automatically in the application's working directory if it doesn't exist when saving.
+**General UI Notes (PySide6 Specific):**
+- **Feedback:** Status messages will be displayed in dedicated `QLabel` widgets near the action buttons or in the `QStatusBar`. `QMessageBox.information` or `QMessageBox.warning` for important notifications or errors.
+- **File Dialogs:** `QFileDialog` will be used:
+    - `QFileDialog.getOpenFileName(self, "Open Configuration File", "", "JSON files (*.json)")`
+    - `QFileDialog.getSaveFileName(self, "Save Configuration File", "configs/", "JSON files (*.json)")` (Initial directory `configs/`)
+- **Directory Creation:** The `configs` directory creation will be handled by `pathlib.Path.mkdir(exist_ok=True, parents=True)` within the `model.save_config` method before attempting to write the file.
+- **Widget Interaction:**
+    - When a base config is loaded, the daily tweak `QLineEdit` and `QTextEdit` fields will be populated.
+    - `output_name_edit.textChanged.connect(self.update_suggested_filename_slot)`
+    - `training_comment_edit.textChanged.connect(self.update_suggested_filename_slot)`
+    - The `update_suggested_filename_slot` would call `model.generate_filename_suggestion` and update the `suggested_filename_label` in the Save tab.
+- **Layout Management:** `QVBoxLayout`, `QHBoxLayout`, `QGridLayout`, `QFormLayout` will be used for arranging widgets. `QGroupBox` will be used to visually group related elements.
 
 ### Behavior Specifications
 
