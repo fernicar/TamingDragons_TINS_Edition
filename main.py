@@ -4,10 +4,11 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
     QPushButton, QTabWidget, QGroupBox, QFormLayout, QLineEdit, QLabel,
-    QFileDialog, QMessageBox, QMenuBar, QMenu, QStatusBar, QGridLayout
+    QFileDialog, QMessageBox, QMenuBar, QMenu, QStatusBar, QGridLayout,
+    QStyleFactory, QComboBox
 )
 from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtCore import Slot, Qt
+from PySide6.QtCore import Slot, Qt, QSettings
 
 from model import TamingDragonsModel # Assuming model.py is in the same directory
 
@@ -17,31 +18,18 @@ class MainWindow(QMainWindow):
         self.model = TamingDragonsModel()
         self.current_base_config_path = None
         self.current_comp_config_path = None
+        # For storing style/theme settings persistently
+        self.settings = QSettings("TamingDragonsOrg", "KohyaConfigTool")
         self._init_ui()
+        self._load_app_settings()
+
 
     def _init_ui(self):
         self.setWindowTitle("Taming Dragons - Kohya Config Tool")
         self.setGeometry(100, 100, 800, 700) # Adjusted default size
 
         # --- Menu Bar ---
-        menu_bar = self.menuBar()
-        file_menu = menu_bar.addMenu("&File")
-
-        load_action = QAction("Load &Base Config...", self)
-        load_action.triggered.connect(self._load_base_config_dialog)
-        file_menu.addAction(load_action)
-
-        save_action = QAction("&Save Config As...", self)
-        save_action.setShortcut(QKeySequence.StandardKey.SaveAs)
-        save_action.triggered.connect(self._save_config_dialog)
-        file_menu.addAction(save_action)
-
-        file_menu.addSeparator()
-
-        exit_action = QAction("E&xit", self)
-        exit_action.setShortcut(QKeySequence.StandardKey.Quit)
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
+        self._create_menu_bar()
 
         # --- Status Bar ---
         self.status_bar = QStatusBar()
@@ -198,6 +186,121 @@ class MainWindow(QMainWindow):
         layout.addStretch(1)
         self.tabs.addTab(save_tab, "Save Configuration")
 
+    def _create_menu_bar(self):
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu("&File")
+
+        load_action = QAction("Load &Base Config...", self)
+        load_action.triggered.connect(self._load_base_config_dialog)
+        file_menu.addAction(load_action)
+
+        save_action = QAction("&Save Config As...", self)
+        save_action.setShortcut(QKeySequence.StandardKey.SaveAs)
+        save_action.triggered.connect(self._save_config_dialog)
+        file_menu.addAction(save_action)
+
+        file_menu.addSeparator()
+
+        exit_action = QAction("E&xit", self)
+        exit_action.setShortcut(QKeySequence.StandardKey.Quit)
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        # View Menu for Styles and Color Schemes
+        view_menu = menu_bar.addMenu("&View")
+
+        # Style Submenu
+        style_menu = view_menu.addMenu("&Style")
+        self.style_actions = [] # Ensure this list is initialized here
+        for style_name in QStyleFactory.keys():
+            action = QAction(style_name, self)
+            action.setCheckable(True)
+            action.setData(style_name)
+            action.triggered.connect(self._on_style_selected_menu)
+            style_menu.addAction(action)
+            self.style_actions.append(action)
+
+        # Color Scheme Submenu
+        color_scheme_menu = view_menu.addMenu("&Color Scheme")
+        self.color_scheme_actions = [] # Ensure this list is initialized here
+
+        # Define color schemes: Name, Qt.ColorScheme value
+        schemes = [
+            ("Auto", Qt.ColorScheme.Unknown),
+            ("Light", Qt.ColorScheme.Light),
+            ("Dark", Qt.ColorScheme.Dark)
+        ]
+        for name, scheme_val in schemes:
+            action = QAction(name, self)
+            action.setCheckable(True)
+            action.setData(scheme_val)
+            action.triggered.connect(self._on_color_scheme_selected_menu)
+            color_scheme_menu.addAction(action)
+            self.color_scheme_actions.append(action)
+
+    def _load_app_settings(self):
+        """Loads and applies stored application settings like style and color scheme."""
+        # Load and apply style
+        saved_style = self.settings.value("style", "Fusion") # Default to Fusion
+        if saved_style in QStyleFactory.keys():
+            QApplication.setStyle(QStyleFactory.create(saved_style))
+        else: # Fallback if saved style is somehow invalid
+            QApplication.setStyle(QStyleFactory.create("Fusion"))
+            saved_style = "Fusion"
+
+        for action in self.style_actions:
+            action.setChecked(action.data() == saved_style)
+
+        # Load and apply color scheme
+        # Qt.ColorScheme enum values: Unknown=0, Light=1, Dark=2
+        saved_scheme_val = self.settings.value("colorScheme", Qt.ColorScheme.Unknown.value, type=int)
+        try:
+            color_scheme_to_apply = Qt.ColorScheme(saved_scheme_val)
+        except ValueError:
+            color_scheme_to_apply = Qt.ColorScheme.Unknown # Fallback
+
+        QApplication.instance().styleHints().setColorScheme(color_scheme_to_apply)
+        for action in self.color_scheme_actions:
+            action.setChecked(action.data() == color_scheme_to_apply)
+
+    @Slot(bool)
+    def _on_style_selected_menu(self, checked):
+        action = self.sender()
+        if not isinstance(action, QAction) or not checked:
+            # If unchecked, it means another was checked, so do nothing here
+            # or ensure at least one is checked (though QActionGroup would be better for exclusive)
+            return
+
+        selected_style_name = action.data()
+        QApplication.setStyle(QStyleFactory.create(selected_style_name))
+        self.settings.setValue("style", selected_style_name)
+
+        # Uncheck other style actions
+        for style_action in self.style_actions:
+            if style_action != action:
+                style_action.setChecked(False)
+        action.setChecked(True) # Ensure the clicked one remains checked
+        self.status_bar.showMessage(f"Style set to {selected_style_name}", 3000)
+
+
+    @Slot(bool)
+    def _on_color_scheme_selected_menu(self, checked):
+        action = self.sender()
+        if not isinstance(action, QAction) or not checked:
+            return
+
+        selected_scheme_val = action.data() # This is Qt.ColorScheme enum member
+        QApplication.instance().styleHints().setColorScheme(selected_scheme_val)
+        self.settings.setValue("colorScheme", selected_scheme_val.value) # Store the integer value
+
+        # Uncheck other color scheme actions
+        for scheme_action in self.color_scheme_actions:
+            if scheme_action != action:
+                scheme_action.setChecked(False)
+        action.setChecked(True)
+        self.status_bar.showMessage(f"Color scheme set to {action.text()}", 3000)
+
+
     @Slot()
     def _load_base_config_dialog(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Load Base Configuration", "", "JSON files (*.json)")
@@ -350,8 +453,14 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # You could apply a default style here if desired, e.g.:
-    # app.setStyle("Fusion")
+
+    # Set default style to Fusion and color scheme to Auto (Unknown) before MainWindow loads settings
+    # This ensures a known baseline if settings are corrupted or not yet saved.
+    # MainWindow._load_app_settings() will then override with saved preferences if available.
+    if "Fusion" in QStyleFactory.keys():
+        app.setStyle(QStyleFactory.create("Fusion"))
+    app.styleHints().setColorScheme(Qt.ColorScheme.Unknown) # Auto
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
