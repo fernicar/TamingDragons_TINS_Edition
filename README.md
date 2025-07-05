@@ -1,5 +1,5 @@
 # Kohya Config Tool - TINS Edition
-![](images\screenshot.png)
+![screenshot](images\screenshot.png)
 <!-- TINS Specification v1.0 -->
 # Kohya Config Tool - TINS Edition
 
@@ -461,23 +461,15 @@ This project builds upon the foundations of the following projects:
   - Flexible technology stack selection within specified constraints
   - Comprehensive behavioral specifications for consistent rebuilds
   - Automatic adaptation to newer LLM models and capabilities
-
-### Additional Credits
-*   **Original repository:** [DragonDiffusionbyBoyo/TamingDragons](https://github.com/DragonDiffusionbyBoyo/TamingDragons)
-*   **Libraries used:**
+- [DragonDiffusionbyBoyo/TamingDragons](https://github.com/DragonDiffusionbyBoyo/TamingDragons) **Original repository:**
+- **Libraries used:**
     - [PySide6](https://pypi.org/project/PySide6/) (v6.9.1) – GUI framework
     - [json](https://docs.python.org/3/library/json.html) – Standard Python library for JSON handling
     - [os](https://docs.python.org/3/library/os.html) – Standard Python library for OS operations
     - [pathlib](https://docs.python.org/3/library/pathlib.html) – Standard Python library for filesystem paths
     - [re](https://docs.python.org/3/library/re.html) – Standard Python library for regular expressions
     - [typing](https://docs.python.org/3/library/typing.html) – Standard Python library for type hints
-*   **Inspiration and methodology:**
-    - [TINS Edition](https://ThereIsNoSource.com) and [TINS GitHub](https://github.com/ScuffedEpoch/TINS)
     - The open-source Kohya SS project and its community
-*   **Contributors:**
-    - fernicar (project lead)
-    - ScuffedEpoch (methodology, guidance)
-    - Community testers and users
 
 ## License
 
