@@ -1,5 +1,4 @@
-# Kohya Config Tool - TINS Edition
-![screenshot](images\screenshot.png)
+![screenshot](images/screenshot.png)
 <!-- TINS Specification v1.0 -->
 # Kohya Config Tool - TINS Edition
 
